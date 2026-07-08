@@ -285,6 +285,14 @@ const SUPABASE_URL = "https://wafesbxxayrwwiprtweq.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhZmVzYnh4YXlyd3dpcHJ0d2VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzExMDAsImV4cCI6MjA5OTA0NzEwMH0.c-ArmJ_PD_yzRRtRvHDG40KiERXZcsataHA_1F4Tnb4";
 // ===========================================================
 
+window.addEventListener('error', function(e){
+  alert('HATA: ' + e.message);
+});
+
+if(!window.supabase){
+  alert('Supabase kütüphanesi yüklenemedi. İnternet bağlantını kontrol et ve sayfayı yenile.');
+}
+
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentRoomId = null;
