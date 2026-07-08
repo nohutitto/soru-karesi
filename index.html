@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soru Karesi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --coral:#FF6B5B;
+    --teal:#2FC5C0;
+    --sun:#FFC93C;
+    --grape:#6C5CE7;
+    --cream:#FFF8EF;
+    --ink:#2B2540;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fredoka',sans-serif;
+  }
+  .screen{
+    max-width:520px;
+    margin:0 auto;
+    padding:28px 20px 100px;
+    min-height:100vh;
+  }
+  .hidden{display:none !important;}
+
+  /* ---- Landing ---- */
+  .hero{
+    text-align:center;
+    padding-top:40px;
+  }
+  .hero .blob{
+    width:120px;height:120px;
+    margin:0 auto 18px;
+    background:var(--coral);
+    border-radius:42% 58% 65% 35% / 45% 45% 55% 55%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:48px;
+    animation: wob 6s ease-in-out infinite;
+  }
+  @keyframes wob{
+    0%,100%{border-radius:42% 58% 65% 35% / 45% 45% 55% 55%;}
+    50%{border-radius:58% 42% 35% 65% / 55% 55% 45% 45%;}
+  }
+  .hero h1{font-size:2.1rem;margin:0 0 6px;color:var(--ink);}
+  .hero p{color:#6b6480;margin:0 0 28px;font-size:0.95rem;}
+  .btn{
+    font-family:'Fredoka',sans-serif;
+    font-size:1rem;
+    border:none;
+    border-radius:16px;
+    padding:16px 22px;
+    cursor:pointer;
+    width:100%;
+    transition:transform .12s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--grape);color:white;box-shadow:0 6px 0 #4b3fc4;}
+  .btn-secondary{background:white;color:var(--ink);border:2px solid #e7e1f5;margin-top:12px;}
+  .btn-teal{background:var(--teal);color:white;box-shadow:0 6px 0 #1f9d99;}
+
+  /* ---- Entry form ---- */
+  .card{
+    background:white;
+    border-radius:20px;
+    padding:24px;
+    box-shadow:0 10px 30px rgba(43,37,64,0.08);
+  }
+  label{
+    display:block;
+    font-size:0.85rem;
+    font-weight:600;
+    margin:14px 0 6px;
+    color:#6b6480;
+  }
+  input[type=text], input[type=number], select{
+    width:100%;
+    padding:13px 14px;
+    border-radius:12px;
+    border:2px solid #ece6f7;
+    font-family:'Poppins',sans-serif;
+    font-size:0.95rem;
+    background:#fbfaff;
+  }
+  input:focus, select:focus{outline:none;border-color:var(--grape);}
+  .gender-row{display:flex;gap:8px;}
+  .gender-chip{
+    flex:1;
+    text-align:center;
+    padding:12px 6px;
+    border-radius:12px;
+    border:2px solid #ece6f7;
+    cursor:pointer;
+    font-size:0.85rem;
+    font-weight:600;
+    color:#6b6480;
+  }
+  .gender-chip.active{border-color:var(--grape);background:#f1eefe;color:var(--grape);}
+
+  /* ---- Room ---- */
+  .room-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .room-header h2{margin:0;font-size:1.2rem;}
+  .share-btn{
+    background:var(--sun);
+    border:none;border-radius:12px;
+    padding:8px 14px;font-family:'Fredoka',sans-serif;
+    font-weight:600;font-size:0.8rem;cursor:pointer;
+  }
+  .feed{
+    display:flex;flex-direction:column;gap:16px;
+    padding-bottom:20px;
+  }
+  .msg{
+    display:flex;gap:10px;align-items:flex-end;
+  }
+  .msg.mine{flex-direction:row-reverse;}
+  .stick{
+    width:38px;height:38px;
+    flex-shrink:0;
+  }
+  .bubble-wrap{max-width:75%;}
+  .meta{
+    font-size:0.72rem;
+    color:#8a83a0;
+    margin-bottom:3px;
+    font-weight:600;
+  }
+  .bubble{
+    background:white;
+    padding:12px 14px;
+    border-radius:16px 16px 16px 4px;
+    font-size:0.92rem;
+    line-height:1.4;
+    box-shadow:0 3px 10px rgba(43,37,64,0.06);
+  }
+  .msg.mine .bubble{
+    background:var(--grape);
+    color:white;
+    border-radius:16px 16px 4px 16px;
+  }
+  .msg.mine .meta{text-align:right;}
+  .private-tag{
+    display:inline-block;
+    font-size:0.65rem;
+    background:var(--sun);
+    color:#5c4600;
+    padding:2px 7px;
+    border-radius:8px;
+    margin-left:6px;
+    font-weight:700;
+    vertical-align:middle;
+  }
+  .empty-state{
+    text-align:center;color:#a39cb5;padding:40px 20px;font-size:0.9rem;
+  }
+
+  /* ---- Composer ---- */
+  .composer{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:white;
+    border-top:1px solid #ece6f7;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+  .composer-inner{max-width:520px;margin:0 auto;}
+  .composer-row{display:flex;gap:8px;align-items:center;}
+  .composer textarea{
+    flex:1;
+    resize:none;
+    border:2px solid #ece6f7;
+    border-radius:14px;
+    padding:11px 12px;
+    font-family:'Poppins',sans-serif;
+    font-size:0.9rem;
+    max-height:80px;
+  }
+  .composer textarea:focus{outline:none;border-color:var(--grape);}
+  .send-btn{
+    background:var(--coral);
+    color:white;border:none;border-radius:14px;
+    width:46px;height:46px;flex-shrink:0;
+    font-size:1.2rem;cursor:pointer;
+  }
+  .privacy-toggle{
+    display:flex;align-items:center;gap:6px;
+    margin-bottom:8px;font-size:0.78rem;color:#6b6480;font-weight:600;
+  }
+  .switch{
+    width:38px;height:22px;background:#ece6f7;border-radius:20px;
+    position:relative;cursor:pointer;transition:background .15s;
+  }
+  .switch.on{background:var(--sun);}
+  .switch .dot{
+    position:absolute;top:2px;left:2px;
+    width:18px;height:18px;background:white;border-radius:50%;
+    transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,0.2);
+  }
+  .switch.on .dot{transform:translateX(16px);}
+
+  .error-box{
+    background:#fff0ee;border:2px solid var(--coral);color:#b8402f;
+    padding:12px 14px;border-radius:12px;font-size:0.85rem;margin-top:14px;
+  }
+  .link-box{
+    display:flex;gap:8px;margin-top:14px;
+    background:#f6f3ff;border-radius:12px;padding:10px 12px;
+    font-size:0.8rem;word-break:break-all;color:var(--grape);font-weight:600;
+  }
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div id="screen-landing" class="screen">
+  <div class="hero">
+    <div class="blob">🙋</div>
+    <h1>Soru Karesi</h1>
+    <p>Bir oda aç, linkini paylaş, gelen herkes çöp adam olarak sorularını sorsun.</p>
+    <button class="btn btn-primary" onclick="createRoom()">✨ Yeni oda oluştur</button>
+  </div>
+  <div id="landing-error"></div>
+</div>
+
+<!-- ENTRY -->
+<div id="screen-entry" class="screen hidden">
+  <div class="card">
+    <h2>Odaya katıl</h2>
+    <p style="color:#8a83a0;font-size:0.85rem;margin-top:4px;">Girmeden önce kendini tanıt 👇</p>
+    <label>Kullanıcı adın</label>
+    <input type="text" id="entry-username" placeholder="ör. gizemli_tilki" maxlength="20">
+    <label>Yaşın</label>
+    <input type="number" id="entry-age" placeholder="ör. 23" min="13" max="99">
+    <label>Cinsiyet</label>
+    <div class="gender-row" id="gender-row">
+      <div class="gender-chip" data-g="Kadın">Kadın</div>
+      <div class="gender-chip" data-g="Erkek">Erkek</div>
+      <div class="gender-chip" data-g="Belirtmek istemiyorum">Belirtmiyorum</div>
+    </div>
+    <button class="btn btn-teal" style="margin-top:20px;" onclick="joinRoom()">Odaya gir →</button>
+    <div id="entry-error"></div>
+  </div>
+</div>
+
+<!-- ROOM -->
+<div id="screen-room" class="screen hidden">
+  <div class="room-header">
+    <h2>💬 Soru Karesi</h2>
+    <button class="share-btn" onclick="copyLink()">🔗 Linki kopyala</button>
+  </div>
+  <div class="feed" id="feed">
+    <div class="empty-state">Henüz soru yok. İlk soruyu sen sor! 🎈</div>
+  </div>
+</div>
+
+<div class="composer hidden" id="composer">
+  <div class="composer-inner">
+    <div class="privacy-toggle">
+      <div class="switch" id="privacy-switch" onclick="togglePrivacy()"><div class="dot"></div></div>
+      <span id="privacy-label">Herkese açık</span>
+    </div>
+    <div class="composer-row">
+      <textarea id="question-input" rows="1" placeholder="Bir soru yaz..."></textarea>
+      <button class="send-btn" onclick="sendQuestion()">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== BURAYI KENDİ SUPABASE BİLGİLERİNLE DEĞİŞTİR ======
+const SUPABASE_URL = "https://wafesbxxayrwwiprtweq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhZmVzYnh4YXlyd3dpcHJ0d2VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NzExMDAsImV4cCI6MjA5OTA0NzEwMH0.c-ArmJ_PD_yzRRtRvHDG40KiERXZcsataHA_1F4Tnb4";
+// ===========================================================
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentRoomId = null;
+let me = { username: "", age: "", gender: "" };
+let isPrivate = false;
+let channel = null;
+
+const params = new URLSearchParams(window.location.search);
+const roomFromUrl = params.get("room");
+
+function showScreen(id){
+  ["screen-landing","screen-entry","screen-room"].forEach(s=>{
+    document.getElementById(s).classList.toggle("hidden", s !== id);
+  });
+  document.getElementById("composer").classList.toggle("hidden", id !== "screen-room");
+}
+
+// ---- Landing: create a new room ----
+async function createRoom(){
+  const errBox = document.getElementById("landing-error");
+  errBox.innerHTML = "";
+  const { data, error } = await supabase.from("rooms").insert({ name: "Soru Karesi" }).select().single();
+  if(error){
+    errBox.innerHTML = `<div class="error-box">Oda oluşturulamadı: ${error.message}</div>`;
+    return;
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("room", data.id);
+  window.location.href = url.toString();
+}
+
+// ---- Gender chip selection ----
+document.querySelectorAll(".gender-chip").forEach(chip=>{
+  chip.addEventListener("click", ()=>{
+    document.querySelectorAll(".gender-chip").forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    me.gender = chip.dataset.g;
+  });
+});
+
+// ---- Join room ----
+async function joinRoom(){
+  const username = document.getElementById("entry-username").value.trim();
+  const age = document.getElementById("entry-age").value.trim();
+  const errBox = document.getElementById("entry-error");
+  errBox.innerHTML = "";
+  if(!username || !age || !me.gender){
+    errBox.innerHTML = `<div class="error-box">Lütfen tüm alanları doldur.</div>`;
+    return;
+  }
+  me.username = username;
+  me.age = age;
+  localStorage.setItem("sk_user", JSON.stringify(me));
+  enterRoom();
+}
+
+function stickColor(gender){
+  if(gender === "Kadın") return "#FF6B5B";
+  if(gender === "Erkek") return "#2FC5C0";
+  return "#6C5CE7";
+}
+
+function stickSvg(gender){
+  const c = stickColor(gender);
+  return `<svg class="stick" viewBox="0 0 40 40">
+    <circle cx="20" cy="10" r="7" fill="${c}"/>
+    <line x1="20" y1="17" x2="20" y2="30" stroke="${c}" stroke-width="3" stroke-linecap="round"/>
+    <line x1="20" y1="21" x2="10" y2="28" stroke="${c}" stroke-width="3" stroke-linecap="round"/>
+    <line x1="20" y1="21" x2="30" y2="28" stroke="${c}" stroke-width="3" stroke-linecap="round"/>
+    <line x1="20" y1="30" x2="12" y2="39" stroke="${c}" stroke-width="3" stroke-linecap="round"/>
+    <line x1="20" y1="30" x2="28" y2="39" stroke="${c}" stroke-width="3" stroke-linecap="round"/>
+  </svg>`;
+}
+
+async function enterRoom(){
+  currentRoomId = roomFromUrl;
+  showScreen("screen-room");
+  await loadQuestions();
+  subscribeRealtime();
+}
+
+async function loadQuestions(){
+  const { data, error } = await supabase
+    .from("questions")
+    .select("*")
+    .eq("room_id", currentRoomId)
+    .order("created_at", { ascending: true });
+  if(error){
+    document.getElementById("feed").innerHTML = `<div class="error-box">Sorular yüklenemedi: ${error.message}</div>`;
+    return;
+  }
+  renderFeed(data || []);
+}
+
+function renderFeed(rows){
+  const feed = document.getElementById("feed");
+  const visible = rows.filter(r => r.is_public || r.username === me.username);
+  if(visible.length === 0){
+    feed.innerHTML = `<div class="empty-state">Henüz soru yok. İlk soruyu sen sor! 🎈</div>`;
+    return;
+  }
+  feed.innerHTML = visible.map(r=>{
+    const mine = r.username === me.username;
+    const tag = r.is_public ? "" : `<span class="private-tag">GİZLİ</span>`;
+    return `
+    <div class="msg ${mine ? "mine":""}">
+      ${stickSvg(r.gender)}
+      <div class="bubble-wrap">
+        <div class="meta">${escapeHtml(r.username)} · ${escapeHtml(String(r.age))}${tag}</div>
+        <div class="bubble">${escapeHtml(r.content)}</div>
+      </div>
+    </div>`;
+  }).join("");
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function subscribeRealtime(){
+  channel = supabase
+    .channel("room-" + currentRoomId)
+    .on("postgres_changes",
+      { event: "INSERT", schema: "public", table: "questions", filter: `room_id=eq.${currentRoomId}` },
+      () => { loadQuestions(); }
+    )
+    .subscribe();
+}
+
+function togglePrivacy(){
+  isPrivate = !isPrivate;
+  document.getElementById("privacy-switch").classList.toggle("on", isPrivate);
+  document.getElementById("privacy-label").textContent = isPrivate ? "Gizli" : "Herkese açık";
+}
+
+async function sendQuestion(){
+  const input = document.getElementById("question-input");
+  const content = input.value.trim();
+  if(!content) return;
+  input.value = "";
+  const { error } = await supabase.from("questions").insert({
+    room_id: currentRoomId,
+    username: me.username,
+    age: me.age,
+    gender: me.gender,
+    content: content,
+    is_public: !isPrivate
+  });
+  if(error){
+    alert("Soru gönderilemedi: " + error.message);
+  }
+}
+
+function copyLink(){
+  navigator.clipboard.writeText(window.location.href).then(()=>{
+    const btn = document.querySelector(".share-btn");
+    const old = btn.textContent;
+    btn.textContent = "Kopyalandı ✓";
+    setTimeout(()=>{ btn.textContent = old; }, 1500);
+  });
+}
+
+// ---- Boot ----
+(function init(){
+  if(!roomFromUrl){
+    showScreen("screen-landing");
+    return;
+  }
+  const saved = localStorage.getItem("sk_user");
+  if(saved){
+    me = JSON.parse(saved);
+    enterRoom();
+  } else {
+    showScreen("screen-entry");
+  }
+})();
+</script>
+</body>
+</html>
